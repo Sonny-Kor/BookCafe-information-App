@@ -46,13 +46,12 @@ CREATE TABLE CoffeeMenu (
     EnglishName VARCHAR(50) NOT NULL,
     Price INT NOT NULL,
     Description TEXT,
-    Picture BLOB,
+    Picture VARCHAR(255), -- 변경된 부분
     AllergyID INT,
     NutrientID INT,
     FOREIGN KEY (AllergyID) REFERENCES Allergies(AllergyID),
     FOREIGN KEY (NutrientID) REFERENCES Nutrients(NutrientID)
 );
-
 
 -- 알러지와 커피 메뉴의 N:M 관계를 나타내는 연결 테이블
 CREATE TABLE CoffeeAllergyMapping (
