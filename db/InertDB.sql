@@ -26,6 +26,9 @@ INSERT INTO CoffeeMenu (KoreanName, EnglishName, Price, Description, Picture, Al
     ('카페라떼', 'Cafe Latte', 4500, '에스프레소에 부드러운 스팀밀크를 더한 커피', NULL, 1, 2),
     ('마끼아또', 'Macchiato', 4000, '에스프레소 위에 플랫화이트 크림이 얹어진 커피', NULL, NULL, 4);
 
+-- 예시 커피 메뉴 추가
+INSERT INTO CoffeeMenu (KoreanName, EnglishName, Price, Description, Picture, AllergyID, NutrientID)
+VALUES ('초코라떼', 'Choco Latte', 5000, '달콤한 초콜릿와과 촉촉한 우유의 조화', '/images/coffee1.jpg', 1, 1);
 
 -- 알러지와 커피 메뉴의 관계 삽입
 INSERT INTO CoffeeAllergyMapping (MenuID, AllergyID) VALUES 

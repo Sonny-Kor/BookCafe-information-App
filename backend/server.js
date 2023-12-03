@@ -4,7 +4,8 @@ import express from 'express';
 import mysql from 'mysql';
 import multer from 'multer';
 import path from 'path';
-
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
 import dbconf from './conf.js';
 
 const app = express();
@@ -32,6 +33,30 @@ const storage = multer.diskStorage({
 });
 
 const upload = multer({ storage });
+
+// 특정 커피 메뉴의 이미지 가져오기
+app.get('/images/:menuId', (req, res) => {
+  const menuId = req.params.menuId;
+
+  // 커피 메뉴 정보 조회
+  connection.query('SELECT Picture FROM CoffeeMenu WHERE MenuID = ?', [menuId], (error, results) => {
+    if (error) {
+      console.error('쿼리 실행 중 오류:', error);
+      res.status(500).send('데이터베이스 조회 중 오류 발생');
+    } else if (results.length === 0 || !results[0].Picture) {
+      res.status(404).send('커피 메뉴의 이미지를 찾을 수 없습니다.');
+    } else {
+      const imagePath = results[0].Picture;
+
+      // 현재 모듈의 디렉토리 경로
+      const currentModulePath = fileURLToPath(import.meta.url);
+      const currentDirPath = dirname(currentModulePath);
+
+      // 이미지 파일을 전송
+      res.sendFile(path.join(currentDirPath, imagePath));
+    }
+  });
+});
 
 // 이미지 업로드 및 데이터베이스 업데이트
 app.post('/images/:menuId', upload.single('image'), (req, res) => {
