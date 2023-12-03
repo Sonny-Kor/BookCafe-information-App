@@ -8,6 +8,8 @@ import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import dbconf from './conf.js';
 
+import fs from 'fs';
+
 const app = express();
 const port = 3010;
 
@@ -20,15 +22,18 @@ connection.connect((err) => {
     console.log('MySQL 연결 성공');
   }
 });
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+const imageFolderPath = path.join(__dirname, './images/');
 
-// 이미지 업로드를 위한 설정
+if (!fs.existsSync(imageFolderPath)) {
+  fs.mkdirSync(imageFolderPath);
+}
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, 'uploads/');
-  },
+  destination: imageFolderPath,
   filename: (req, file, cb) => {
-    const ext = path.extname(file.originalname);
-    cb(null, Date.now() + ext);
+    // 원래 파일명 사용
+    cb(null, file.originalname);
   },
 });
 
@@ -69,7 +74,7 @@ app.post('/images/:menuId', upload.single('image'), (req, res) => {
       console.error('쿼리 실행 중 오류:', error);
       res.status(500).send('데이터베이스 업데이트 중 오류 발생');
     } else {
-      res.json({ imageUrl });
+      res.status(200).json({ message: '이미지가 성공적으로 저장되었습니다.', imageUrl });
     }
   });
 });
