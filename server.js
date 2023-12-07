@@ -1,5 +1,3 @@
-// server.js
-
 import express from 'express';
 import mysql from 'mysql';
 import multer from 'multer';
@@ -22,6 +20,7 @@ connection.connect((err) => {
     console.log('MySQL 연결 성공');
   }
 });
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const imageFolderPath = path.join(__dirname, './images/');
@@ -29,6 +28,7 @@ const imageFolderPath = path.join(__dirname, './images/');
 if (!fs.existsSync(imageFolderPath)) {
   fs.mkdirSync(imageFolderPath);
 }
+
 const storage = multer.diskStorage({
   destination: imageFolderPath,
   filename: (req, file, cb) => {
@@ -44,21 +44,17 @@ app.get('/images/:menuId', (req, res) => {
   const menuId = req.params.menuId;
 
   // 커피 메뉴 정보 조회
-  connection.query('SELECT Picture FROM CoffeeMenu WHERE MenuID = ?', [menuId], (error, results) => {
+  connection.query('SELECT ImageURL FROM Menu WHERE MenuID = ?', [menuId], (error, results) => {
     if (error) {
       console.error('쿼리 실행 중 오류:', error);
       res.status(500).send('데이터베이스 조회 중 오류 발생');
-    } else if (results.length === 0 || !results[0].Picture) {
+    } else if (results.length === 0 || !results[0].ImageURL) {
       res.status(404).send('커피 메뉴의 이미지를 찾을 수 없습니다.');
     } else {
-      const imagePath = results[0].Picture;
-
-      // 현재 모듈의 디렉토리 경로
-      const currentModulePath = fileURLToPath(import.meta.url);
-      const currentDirPath = dirname(currentModulePath);
+      const imagePath = results[0].ImageURL;
 
       // 이미지 파일을 전송
-      res.sendFile(path.join(currentDirPath, imagePath));
+      res.sendFile(path.join(__dirname, imagePath));
     }
   });
 });
@@ -69,7 +65,7 @@ app.post('/images/:menuId', upload.single('image'), (req, res) => {
   const imageUrl = `/images/${req.file.filename}`;
 
   // MySQL에서 이미지 URL 업데이트
-  connection.query('UPDATE CoffeeMenu SET Picture = ? WHERE MenuID = ?', [imageUrl, menuId], (error) => {
+  connection.query('UPDATE Menu SET ImageURL = ? WHERE MenuID = ?', [imageUrl, menuId], (error) => {
     if (error) {
       console.error('쿼리 실행 중 오류:', error);
       res.status(500).send('데이터베이스 업데이트 중 오류 발생');
@@ -81,7 +77,7 @@ app.post('/images/:menuId', upload.single('image'), (req, res) => {
 
 // 모든 커피 메뉴 조회
 app.get('/coffee', (req, res) => {
-  connection.query('SELECT * FROM CoffeeMenu', (error, results) => {
+  connection.query('SELECT * FROM Menu', (error, results) => {
     if (error) {
       console.error('쿼리 실행 중 오류:', error);
       res.status(500).send('데이터베이스 조회 중 오류 발생');
@@ -96,7 +92,7 @@ app.get('/coffee/:id', (req, res) => {
   const menuId = req.params.id;
 
   // 커피 메뉴 정보 조회
-  connection.query('SELECT * FROM CoffeeMenu WHERE MenuID = ?', [menuId], (error, results) => {
+  connection.query('SELECT * FROM Menu WHERE MenuID = ?', [menuId], (error, results) => {
     if (error) {
       console.error('쿼리 실행 중 오류:', error);
       res.status(500).send('데이터베이스 조회 중 오류 발생');
@@ -105,42 +101,21 @@ app.get('/coffee/:id', (req, res) => {
     } else {
       const coffeeMenu = results[0];
 
-      // 알러지 정보 조회
-      connection.query(
-        'SELECT AllergyName FROM CoffeeAllergyMapping AS CAM JOIN Allergies AS A ON CAM.AllergyID = A.AllergyID WHERE MenuID = ?',
-        [menuId],
-        (error, allergyResults) => {
-          if (error) {
-            console.error('쿼리 실행 중 오류:', error);
-            res.status(500).send('알러지 정보 조회 중 오류 발생');
-          } else {
-            coffeeMenu.allergies = allergyResults.map((row) => row.AllergyName);
+      // 영양 정보 조회
+      connection.query('SELECT * FROM NutritionInformation WHERE MenuID = ?', [menuId], (error, nutrientResults) => {
+        if (error) {
+          console.error('쿼리 실행 중 오류:', error);
+          res.status(500).send('영양 정보 조회 중 오류 발생');
+        } else {
+          coffeeMenu.nutrients = nutrientResults;
 
-            // 영양 정보 조회
-            connection.query(
-              'SELECT NutrientName FROM CoffeeNutrientMapping AS CNM JOIN Nutrients AS N ON CNM.NutrientID = N.NutrientID WHERE MenuID = ?',
-              [menuId],
-              (error, nutrientResults) => {
-                if (error) {
-                  console.error('쿼리 실행 중 오류:', error);
-                  res.status(500).send('영양 정보 조회 중 오류 발생');
-                } else {
-                  coffeeMenu.nutrients = nutrientResults.map((row) => row.NutrientName);
-
-                  // 최종 결과 전송
-                  res.json(coffeeMenu);
-                }
-              }
-            );
-          }
+          // 최종 결과 전송
+          res.json(coffeeMenu);
         }
-      );
+      });
     }
   });
 });
-
-// 이미지 제공
-app.use('/images', express.static('uploads'));
 
 app.listen(port, () => {
   console.log(`서버 실행됨 (port ${port})`);

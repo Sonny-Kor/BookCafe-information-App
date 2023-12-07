@@ -6,67 +6,29 @@ CREATE DATABASE CoffeeDB;
 
 -- 사용할 데이터베이스 선택
 USE CoffeeDB;
-
--- 알러지 테이블 생성
-CREATE TABLE Allergies (
-    AllergyID INT AUTO_INCREMENT PRIMARY KEY,
-    AllergyName VARCHAR(50) NOT NULL
+CREATE TABLE Category (
+    CategoryID INT AUTO_INCREMENT PRIMARY KEY,
+    CategoryName VARCHAR(100)
 );
 
--- 예시 알러지 데이터 삽입
-INSERT INTO Allergies (AllergyName) VALUES 
-    ('우유'),
-    ('대두'),
-    ('밀'),
-    ('땅콩'),
-    ('난류'),
-    ('오징어'),
-    ('토마토'),
-    ('복숭아');
-
--- 영양성분 테이블 생성
-CREATE TABLE Nutrients (
-    NutrientID INT AUTO_INCREMENT PRIMARY KEY,
-    NutrientName VARCHAR(50) NOT NULL
-);
-
--- 예시 영양성분 데이터 삽입
-INSERT INTO Nutrients (NutrientName) VALUES 
-    ('칼로리'),
-    ('당류'),
-    ('단백질'),
-    ('나트륨'),
-    ('포화지방'),
-    ('카페인');
-
--- 커피 메뉴 테이블 생성
-CREATE TABLE CoffeeMenu (
+CREATE TABLE Menu (
     MenuID INT AUTO_INCREMENT PRIMARY KEY,
-    KoreanName VARCHAR(50) NOT NULL,
-    EnglishName VARCHAR(50) NOT NULL,
-    Price INT NOT NULL,
+    CategoryID INT,
+    KoreanMenuName VARCHAR(100),
+    EnglishMenuName VARCHAR(100),
     Description TEXT,
-    Picture VARCHAR(255), -- 변경된 부분
-    AllergyID INT,
-    NutrientID INT,
-    FOREIGN KEY (AllergyID) REFERENCES Allergies(AllergyID),
-    FOREIGN KEY (NutrientID) REFERENCES Nutrients(NutrientID)
+    ImageURL VARCHAR(255),
+    FOREIGN KEY (CategoryID) REFERENCES Category(CategoryID)
 );
 
--- 알러지와 커피 메뉴의 N:M 관계를 나타내는 연결 테이블
-CREATE TABLE CoffeeAllergyMapping (
+CREATE TABLE NutritionInformation (
+    NutritionID INT AUTO_INCREMENT PRIMARY KEY,
     MenuID INT,
-    AllergyID INT,
-    PRIMARY KEY (MenuID, AllergyID),
-    FOREIGN KEY (MenuID) REFERENCES CoffeeMenu(MenuID),
-    FOREIGN KEY (AllergyID) REFERENCES Allergies(AllergyID)
-);
-
--- 영양성분과 커피 메뉴의 N:M 관계를 나타내는 연결 테이블
-CREATE TABLE CoffeeNutrientMapping (
-    MenuID INT,
-    NutrientID INT,
-    PRIMARY KEY (MenuID, NutrientID),
-    FOREIGN KEY (MenuID) REFERENCES CoffeeMenu(MenuID),
-    FOREIGN KEY (NutrientID) REFERENCES Nutrients(NutrientID)
+    Calories INT,
+    Sugar DECIMAL(5,2),
+    Protein DECIMAL(5,2),
+    Sodium INT,
+    SaturatedFat DECIMAL(5,2),
+    Caffeine INT,
+    FOREIGN KEY (MenuID) REFERENCES Menu(MenuID)
 );
