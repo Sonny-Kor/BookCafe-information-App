@@ -1,6 +1,6 @@
 const dbconf = {
-  host: 'svc.sel5.cloudtype.app',
-  port: '30537',
+  host: 'svc.sel4.cloudtype.app',
+  port: '31048',
   user: 'root',
   password: '970402',
   database: 'CoffeeDB',
